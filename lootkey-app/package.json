@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
-    "docs": "jsdoc src -r -d docs/frontend"
+    "docs": "jsdoc src -r -d docs/frontend",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "chromedriver": "^147.0.0",
@@ -28,12 +29,14 @@
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "gh-pages": "^6.3.0",
     "globals": "^17.4.0",
     "jsdoc": "^4.0.5",
     "postcss": "^8.5.8",
+    "prettier": "^3.8.3",
     "tailwindcss": "^3.4.19",
     "vite": "^8.0.1"
   }

@@ -12,7 +12,7 @@ export default function RegisterPage() {
     password: "",
     firstName: "",
     lastName: "",
-    birthDate: ""
+    birthDate: "",
   });
 
   const [message, setMessage] = useState("");
@@ -20,7 +20,7 @@ export default function RegisterPage() {
   const handleChange = (e) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -30,15 +30,15 @@ export default function RegisterPage() {
     logAction(
       "REGISTER_ATTEMPT",
       `User tried to register account. Email=${form.email}, Username=${form.username}`,
-      "/register"
+      "/register",
     );
 
     const res = await fetch("https://localhost:7253/api/auth/register", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(form)
+      body: JSON.stringify(form),
     });
 
     if (!res.ok) {
@@ -48,7 +48,7 @@ export default function RegisterPage() {
       logAction(
         "REGISTER_FAILED",
         `Registration failed. Email=${form.email}. Reason=${text}`,
-        "/register"
+        "/register",
       );
 
       return;
@@ -57,7 +57,7 @@ export default function RegisterPage() {
     logAction(
       "REGISTER_SUCCESS",
       `New user registered. Email=${form.email}, Username=${form.username}`,
-      "/register"
+      "/register",
     );
 
     navigate("/login");
@@ -129,11 +129,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {message && (
-          <p className="mt-4 text-red-400">
-            {message}
-          </p>
-        )}
+        {message && <p className="mt-4 text-red-400">{message}</p>}
       </div>
     </main>
   );

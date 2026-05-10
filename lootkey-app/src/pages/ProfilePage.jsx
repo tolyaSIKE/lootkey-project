@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { logAction } from "../services/logger";
@@ -12,25 +12,13 @@ export default function ProfilePage() {
   const [purchases, setPurchases] = useState([]);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    loadProfile();
-    loadFavorites();
-    loadPurchases();
-
-    logAction(
-      "PROFILE_PAGE_OPENED",
-      "User opened profile page",
-      "/profile"
-    );
-  }, []);
-
-  const loadProfile = () => {
+  const loadProfile = useCallback(() => {
     const token = localStorage.getItem("token");
 
     fetch("https://localhost:7253/api/users/me", {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -40,7 +28,7 @@ export default function ProfilePage() {
         logAction(
           "PROFILE_LOADED",
           `Profile loaded. Username=${data.username}, Email=${data.email}`,
-          "/profile"
+          "/profile",
         );
       })
       .catch((err) => {
@@ -49,36 +37,44 @@ export default function ProfilePage() {
         logAction(
           "PROFILE_LOAD_FAILED",
           `Profile loading failed: ${err}`,
-          "/profile"
+          "/profile",
         );
       });
-  };
+  }, []);
 
-  const loadFavorites = () => {
+  const loadFavorites = useCallback(() => {
     const token = localStorage.getItem("token");
 
     fetch("https://localhost:7253/api/favorites", {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((res) => res.json())
       .then((data) => setFavorites(data))
       .catch((err) => console.error("Favorites loading error:", err));
-  };
+  }, []);
 
-  const loadPurchases = () => {
+  const loadPurchases = useCallback(() => {
     const token = localStorage.getItem("token");
 
     fetch("https://localhost:7253/api/orders/my-purchases", {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((res) => res.json())
       .then((data) => setPurchases(data))
       .catch((err) => console.error("Purchases loading error:", err));
-  };
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+    loadFavorites();
+    loadPurchases();
+
+    logAction("PROFILE_PAGE_OPENED", "User opened profile page", "/profile");
+  }, [loadProfile, loadFavorites, loadPurchases]);
 
   const saveUsername = async () => {
     const token = localStorage.getItem("token");
@@ -86,19 +82,22 @@ export default function ProfilePage() {
     logAction(
       "USERNAME_CHANGE_ATTEMPT",
       `User tried to change username to: ${username}`,
-      "/profile"
+      "/profile",
     );
 
-    const res = await fetch("https://localhost:7253/api/users/update-username", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+    const res = await fetch(
+      "https://localhost:7253/api/users/update-username",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username,
+        }),
       },
-      body: JSON.stringify({
-        username
-      })
-    });
+    );
 
     if (res.ok) {
       setMessage("Username updated.");
@@ -107,7 +106,7 @@ export default function ProfilePage() {
       logAction(
         "USERNAME_CHANGED",
         `User changed username to: ${username}`,
-        "/profile"
+        "/profile",
       );
     } else {
       setMessage("Username update failed.");
@@ -115,7 +114,7 @@ export default function ProfilePage() {
       logAction(
         "USERNAME_CHANGE_FAILED",
         `Username update failed. New username=${username}`,
-        "/profile"
+        "/profile",
       );
     }
   };
@@ -134,19 +133,22 @@ export default function ProfilePage() {
       logAction(
         "AVATAR_CHANGE_ATTEMPT",
         `User selected new avatar file: ${file.name}`,
-        "/profile"
+        "/profile",
       );
 
-      const res = await fetch("https://localhost:7253/api/users/update-avatar", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+      const res = await fetch(
+        "https://localhost:7253/api/users/update-avatar",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            avatarUrl: base64Avatar,
+          }),
         },
-        body: JSON.stringify({
-          avatarUrl: base64Avatar
-        })
-      });
+      );
 
       if (res.ok) {
         setMessage("Avatar updated.");
@@ -155,7 +157,7 @@ export default function ProfilePage() {
         logAction(
           "AVATAR_CHANGED",
           `User changed avatar. File=${file.name}`,
-          "/profile"
+          "/profile",
         );
       } else {
         setMessage("Avatar update failed.");
@@ -163,7 +165,7 @@ export default function ProfilePage() {
         logAction(
           "AVATAR_CHANGE_FAILED",
           `Avatar update failed. File=${file.name}`,
-          "/profile"
+          "/profile",
         );
       }
     };
@@ -221,14 +223,12 @@ export default function ProfilePage() {
               Save
             </button>
 
-            {message && (
-              <p className="mt-3 text-green-400">
-                {message}
-              </p>
-            )}
+            {message && <p className="mt-3 text-green-400">{message}</p>}
 
             <div className="mt-5 space-y-2">
-              <p>Name: {profile.firstName} {profile.lastName}</p>
+              <p>
+                Name: {profile.firstName} {profile.lastName}
+              </p>
               <p>Birth: {profile.birthDate}</p>
               <p>Role: {profile.role}</p>
             </div>
@@ -248,7 +248,7 @@ export default function ProfilePage() {
                       logAction(
                         "FAVORITE_GAME_OPENED_FROM_PROFILE",
                         `User opened favorite game from profile: ${game.title}, gameId=${game.id}`,
-                        `/game/${game.id}`
+                        `/game/${game.id}`,
                       );
 
                       navigate(`/game/${game.id}`);
@@ -261,9 +261,7 @@ export default function ProfilePage() {
                       className="w-36 h-20 object-cover"
                     />
 
-                    <h3 className="font-semibold text-lg">
-                      {game.title}
-                    </h3>
+                    <h3 className="font-semibold text-lg">{game.title}</h3>
                   </div>
                 ))}
               </div>

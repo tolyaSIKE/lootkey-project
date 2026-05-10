@@ -9,7 +9,7 @@ export default function PageLogger() {
     logAction(
       "PAGE_OPENED",
       `User opened page: ${location.pathname}${location.search}`,
-      `${location.pathname}${location.search}`
+      `${location.pathname}${location.search}`,
     );
   }, [location.pathname, location.search]);
 

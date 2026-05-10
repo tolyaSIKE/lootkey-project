@@ -18,28 +18,24 @@ export default function LoginPage() {
     logAction(
       "LOGIN_ATTEMPT",
       `User tried to login with email: ${email}`,
-      "/login"
+      "/login",
     );
 
     const res = await fetch("https://localhost:7253/api/auth/login", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         email,
-        password
-      })
+        password,
+      }),
     });
 
     if (!res.ok) {
       setMessage("Login failed.");
 
-      logAction(
-        "LOGIN_FAILED",
-        `Login failed for email: ${email}`,
-        "/login"
-      );
+      logAction("LOGIN_FAILED", `Login failed for email: ${email}`, "/login");
 
       return;
     }
@@ -52,7 +48,7 @@ export default function LoginPage() {
     logAction(
       "LOGIN_SUCCESS",
       `User successfully logged in: ${email}`,
-      "/login"
+      "/login",
     );
 
     navigate("/");
@@ -90,11 +86,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {message && (
-          <p className="mt-4 text-red-400">
-            {message}
-          </p>
-        )}
+        {message && <p className="mt-4 text-red-400">{message}</p>}
       </div>
     </main>
   );

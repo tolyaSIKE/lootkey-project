@@ -11,22 +11,19 @@ export default function IdleNotification() {
 
       setShow(false);
 
-      timeout = setTimeout(() => {
-        setShow(true);
+      timeout = setTimeout(
+        () => {
+          setShow(true);
 
-        setTimeout(() => {
-          setShow(false);
-        }, 8000);
-
-      }, 10 * 60 * 1000);
+          setTimeout(() => {
+            setShow(false);
+          }, 8000);
+        },
+        10 * 60 * 1000,
+      );
     };
 
-    const events = [
-      "mousemove",
-      "keydown",
-      "click",
-      "scroll"
-    ];
+    const events = ["mousemove", "keydown", "click", "scroll"];
 
     events.forEach((event) => {
       window.addEventListener(event, resetTimer);

@@ -10,7 +10,7 @@ export default function GameCard({
   discountPrice,
   image,
   steamUrl,
-  epicUrl
+  epicUrl,
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -23,20 +23,20 @@ export default function GameCard({
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (user && token) {
-      fetch("https://localhost:7253/api/favorites/ids", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          setIsFavorite(data.includes(id));
-        })
-        .catch(err => console.error("Favorites loading error:", err));
-    } else {
-      setIsFavorite(false);
+    if (!user || !token) {
+      return;
     }
+
+    fetch("https://localhost:7253/api/favorites/ids", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setIsFavorite(data.includes(id));
+      })
+      .catch((err) => console.error("Favorites loading error:", err));
   }, [user, id]);
 
   const showToast = (message) => {
@@ -51,7 +51,7 @@ export default function GameCard({
     logAction(
       "GAME_CARD_OPENED",
       `User opened game card: ${title}, gameId=${id}`,
-      `/game/${id}`
+      `/game/${id}`,
     );
 
     navigate(`/game/${id}`);
@@ -65,7 +65,7 @@ export default function GameCard({
     if (!token) {
       logAction(
         "FAVORITE_ATTEMPT_WITHOUT_LOGIN",
-        `Anonymous user tried to add favorite: ${title}, gameId=${id}`
+        `Anonymous user tried to add favorite: ${title}, gameId=${id}`,
       );
 
       navigate("/login");
@@ -75,18 +75,18 @@ export default function GameCard({
     fetch(`https://localhost:7253/api/favorites/${id}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.status === "added") {
           setIsFavorite(true);
           showToast("Game added to favourites");
 
           logAction(
             "FAVORITE_ADDED",
-            `Added to favourites: ${title}, gameId=${id}`
+            `Added to favourites: ${title}, gameId=${id}`,
           );
         }
 
@@ -96,11 +96,11 @@ export default function GameCard({
 
           logAction(
             "FAVORITE_REMOVED",
-            `Removed from favourites: ${title}, gameId=${id}`
+            `Removed from favourites: ${title}, gameId=${id}`,
           );
         }
       })
-      .catch(err => console.error("Favourite error:", err));
+      .catch((err) => console.error("Favourite error:", err));
   };
 
   const openSteam = (e) => {
@@ -108,7 +108,7 @@ export default function GameCard({
 
     logAction(
       "EXTERNAL_LINK_OPENED",
-      `Opened Steam link for ${title}, gameId=${id}`
+      `Opened Steam link for ${title}, gameId=${id}`,
     );
 
     window.open(steamUrl, "_blank");
@@ -119,7 +119,7 @@ export default function GameCard({
 
     logAction(
       "EXTERNAL_LINK_OPENED",
-      `Opened Epic Games link for ${title}, gameId=${id}`
+      `Opened Epic Games link for ${title}, gameId=${id}`,
     );
 
     window.open(epicUrl, "_blank");
@@ -177,16 +177,11 @@ export default function GameCard({
                 </p>
               </div>
             ) : (
-              <p className="text-gray-400">
-                €{Number(price).toFixed(2)}
-              </p>
+              <p className="text-gray-400">€{Number(price).toFixed(2)}</p>
             )}
           </div>
 
-          <div
-            className="flex gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
             {steamUrl && (
               <img
                 src="/lootkey-app/icons/steam.png"

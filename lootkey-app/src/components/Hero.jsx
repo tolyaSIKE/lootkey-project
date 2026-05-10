@@ -16,8 +16,8 @@ export default function Hero() {
     if (user && token) {
       fetch("https://localhost:7253/api/recommendations", {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
         .then((res) => res.json())
         .then((data) => {
@@ -81,7 +81,7 @@ export default function Hero() {
         isAnimating ? "opacity-60 scale-[0.99]" : "opacity-100 scale-100"
       }`}
       style={{
-        backgroundImage: `url('/lootkey-app${game.imageUrl}')`
+        backgroundImage: `url('/lootkey-app${game.imageUrl}')`,
       }}
     >
       <div className="absolute inset-0 bg-black/35"></div>
@@ -111,7 +111,6 @@ export default function Hero() {
           isAnimating ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
         }`}
       >
-
         <h1 className="text-2xl md:text-4xl text-white font-bold">
           {game.title}
         </h1>

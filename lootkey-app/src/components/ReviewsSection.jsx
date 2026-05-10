@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export default function ReviewsSection({ gameId }) {
@@ -9,24 +9,24 @@ export default function ReviewsSection({ gameId }) {
   const [comment, setComment] = useState("");
   const [message, setMessage] = useState("");
 
-  const loadReviews = () => {
+  const loadReviews = useCallback(() => {
     const token = localStorage.getItem("token");
 
     fetch(`https://localhost:7253/api/reviews/game/${gameId}`, {
       headers: token
         ? {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           }
-        : {}
+        : {},
     })
       .then((res) => res.json())
       .then((data) => setReviews(data))
       .catch((err) => console.error("Reviews loading error:", err));
-  };
+  }, [gameId]);
 
   useEffect(() => {
     loadReviews();
-  }, [gameId]);
+  }, [loadReviews]);
 
   const submitReview = async () => {
     const token = localStorage.getItem("token");
@@ -40,13 +40,13 @@ export default function ReviewsSection({ gameId }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         gameId: Number(gameId),
         rating: Number(rating),
-        comment
-      })
+        comment,
+      }),
     });
 
     if (res.ok) {
@@ -68,16 +68,19 @@ export default function ReviewsSection({ gameId }) {
       return;
     }
 
-    const res = await fetch(`https://localhost:7253/api/reviews/${reviewId}/reaction`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+    const res = await fetch(
+      `https://localhost:7253/api/reviews/${reviewId}/reaction`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reactionType,
+        }),
       },
-      body: JSON.stringify({
-        reactionType
-      })
-    });
+    );
 
     if (res.ok) {
       loadReviews();
@@ -96,12 +99,15 @@ export default function ReviewsSection({ gameId }) {
 
     if (!confirmed) return;
 
-    const res = await fetch(`https://localhost:7253/api/reviews/my/${reviewId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    const res = await fetch(
+      `https://localhost:7253/api/reviews/my/${reviewId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
 
     if (res.ok) {
       setMessage("Review deleted successfully.");
@@ -149,16 +155,10 @@ export default function ReviewsSection({ gameId }) {
             </button>
           </>
         ) : (
-          <p className="text-gray-400">
-            Login to write a review.
-          </p>
+          <p className="text-gray-400">Login to write a review.</p>
         )}
 
-        {message && (
-          <p className="mt-3 text-green-400">
-            {message}
-          </p>
-        )}
+        {message && <p className="mt-3 text-green-400">{message}</p>}
       </div>
 
       {reviews.length === 0 ? (
@@ -197,9 +197,7 @@ export default function ReviewsSection({ gameId }) {
                 {"⭐".repeat(review.rating)}
               </div>
 
-              <p className="text-gray-300 mb-4">
-                {review.comment}
-              </p>
+              <p className="text-gray-300 mb-4">{review.comment}</p>
 
               <div className="flex gap-3">
                 <button

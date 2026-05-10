@@ -16,27 +16,35 @@ export default function Navbar() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (token) {
-      fetch("https://localhost:7253/api/users/me", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-        .then((res) => res.json())
-        .then((data) => setProfile(data))
-        .catch((err) => console.error("Profile loading error:", err));
-    } else {
-      setProfile(null);
+    if (!token) {
+      return;
     }
+
+    fetch("https://localhost:7253/api/users/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setProfile(data))
+      .catch((err) => console.error("Profile loading error:", err));
   }, [user]);
 
   const goHome = () => {
-    logAction("NAVIGATION_CLICK", "User clicked LootKey logo and opened home page", "/");
+    logAction(
+      "NAVIGATION_CLICK",
+      "User clicked LootKey logo and opened home page",
+      "/",
+    );
     navigate("/");
   };
 
   const goSearch = () => {
-    logAction("SEARCH_STARTED", `User searched games by text: ${search}`, `/search?q=${search}`);
+    logAction(
+      "SEARCH_STARTED",
+      `User searched games by text: ${search}`,
+      `/search?q=${search}`,
+    );
     navigate(`/search?q=${search}`);
     setMobileMenuOpen(false);
   };
@@ -53,6 +61,7 @@ export default function Navbar() {
     clearCart();
     localStorage.removeItem("lootkey_cart");
     logout();
+    setProfile(null);
     setMobileMenuOpen(false);
   };
 
@@ -88,7 +97,9 @@ export default function Navbar() {
           </button>
 
           <button
-            onClick={() => goToPage("/search", "User opened Catalog/Search page")}
+            onClick={() =>
+              goToPage("/search", "User opened Catalog/Search page")
+            }
             className="bg-gray-800 px-3 py-1 rounded"
           >
             Catalog
@@ -108,7 +119,9 @@ export default function Navbar() {
           {user ? (
             <div className="hidden sm:flex items-center gap-2">
               <div
-                onClick={() => goToPage("/profile", "User opened profile page from navbar")}
+                onClick={() =>
+                  goToPage("/profile", "User opened profile page from navbar")
+                }
                 className="flex items-center gap-2 cursor-pointer bg-gray-800 px-2 py-1 rounded hover:bg-gray-700"
               >
                 <img
@@ -133,14 +146,18 @@ export default function Navbar() {
           ) : (
             <div className="hidden sm:flex gap-2">
               <button
-                onClick={() => goToPage("/login", "Anonymous user opened login page")}
+                onClick={() =>
+                  goToPage("/login", "Anonymous user opened login page")
+                }
                 className="bg-gray-800 px-3 py-1 rounded"
               >
                 Login
               </button>
 
               <button
-                onClick={() => goToPage("/register", "Anonymous user opened register page")}
+                onClick={() =>
+                  goToPage("/register", "Anonymous user opened register page")
+                }
                 className="bg-gray-800 px-3 py-1 rounded"
               >
                 Register
@@ -174,7 +191,6 @@ export default function Navbar() {
             title="Open cart"
           >
             🛒
-
             {totalCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-green-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                 {totalCount}
@@ -184,7 +200,12 @@ export default function Navbar() {
 
           <button
             onClick={() => {
-              logAction("MOBILE_MENU_TOGGLED", mobileMenuOpen ? "User closed mobile menu" : "User opened mobile menu");
+              logAction(
+                "MOBILE_MENU_TOGGLED",
+                mobileMenuOpen
+                  ? "User closed mobile menu"
+                  : "User opened mobile menu",
+              );
               setMobileMenuOpen(!mobileMenuOpen);
             }}
             className="lg:hidden bg-gray-800 px-3 py-2 rounded text-xl"
@@ -198,20 +219,46 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden absolute left-4 right-4 top-full mt-2 bg-gray-900 border border-green-600 rounded-xl p-4 z-50 shadow-2xl">
           <div className="flex flex-col gap-3">
-            <button onClick={() => goToPage("/latest", "User opened Latest page from mobile menu")} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left">
+            <button
+              onClick={() =>
+                goToPage("/latest", "User opened Latest page from mobile menu")
+              }
+              className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left"
+            >
               Latest
             </button>
 
-            <button onClick={() => goToPage("/sales", "User opened Sales page from mobile menu")} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left">
+            <button
+              onClick={() =>
+                goToPage("/sales", "User opened Sales page from mobile menu")
+              }
+              className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left"
+            >
               Sales
             </button>
 
-            <button onClick={() => goToPage("/search", "User opened Catalog/Search page from mobile menu")} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left">
+            <button
+              onClick={() =>
+                goToPage(
+                  "/search",
+                  "User opened Catalog/Search page from mobile menu",
+                )
+              }
+              className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left"
+            >
               Catalog
             </button>
 
             {user?.role === "Admin" && (
-              <button onClick={() => goToPage("/admin", "Admin opened Admin Panel from mobile menu")} className="bg-green-700 hover:bg-green-600 px-4 py-2 rounded text-left">
+              <button
+                onClick={() =>
+                  goToPage(
+                    "/admin",
+                    "Admin opened Admin Panel from mobile menu",
+                  )
+                }
+                className="bg-green-700 hover:bg-green-600 px-4 py-2 rounded text-left"
+              >
                 Admin Panel
               </button>
             )}
@@ -233,11 +280,18 @@ export default function Navbar() {
             {user ? (
               <div className="sm:hidden flex flex-col gap-3 pt-2 border-t border-gray-700">
                 <button
-                  onClick={() => goToPage("/profile", "User opened profile page from mobile menu")}
+                  onClick={() =>
+                    goToPage(
+                      "/profile",
+                      "User opened profile page from mobile menu",
+                    )
+                  }
                   className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left flex items-center gap-2"
                 >
                   <img
-                    src={profile?.avatarUrl || "/lootkey-app/default-avatar.png"}
+                    src={
+                      profile?.avatarUrl || "/lootkey-app/default-avatar.png"
+                    }
                     className="w-8 h-8 rounded-full object-cover"
                     alt="User avatar"
                   />
@@ -253,11 +307,27 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="sm:hidden flex flex-col gap-3 pt-2 border-t border-gray-700">
-                <button onClick={() => goToPage("/login", "Anonymous user opened login page from mobile menu")} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left">
+                <button
+                  onClick={() =>
+                    goToPage(
+                      "/login",
+                      "Anonymous user opened login page from mobile menu",
+                    )
+                  }
+                  className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left"
+                >
                   Login
                 </button>
 
-                <button onClick={() => goToPage("/register", "Anonymous user opened register page from mobile menu")} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left">
+                <button
+                  onClick={() =>
+                    goToPage(
+                      "/register",
+                      "Anonymous user opened register page from mobile menu",
+                    )
+                  }
+                  className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-left"
+                >
                   Register
                 </button>
               </div>

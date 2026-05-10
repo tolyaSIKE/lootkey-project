@@ -23,8 +23,8 @@ export default function GamePage() {
       fetch(`https://localhost:7253/api/recommendations/view/${id}`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       }).catch((err) => console.error("View logging error:", err));
     }
   }, [id]);
@@ -89,9 +89,7 @@ export default function GamePage() {
                   €{Number(game.discountPrice).toFixed(2)}
                 </p>
 
-                <p className="text-green-400 mt-2 text-sm">
-                  Discount active
-                </p>
+                <p className="text-green-400 mt-2 text-sm">Discount active</p>
               </div>
             ) : (
               <p className="text-green-400 text-3xl font-bold">
@@ -118,9 +116,7 @@ export default function GamePage() {
             </div>
 
             <div>
-              <h3 className="text-green-400 mb-1 font-medium">
-                Recommended:
-              </h3>
+              <h3 className="text-green-400 mb-1 font-medium">Recommended:</h3>
               <pre className="whitespace-pre-wrap text-sm text-gray-300">
                 {game.recRequirements || "Not specified"}
               </pre>

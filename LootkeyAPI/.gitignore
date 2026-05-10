@@ -1,0 +1,13 @@
+.vs/
+bin/
+obj/
+TestResults/
+*.user
+*.suo
+*.vsidx
+
+LootkeyAPI/bin/
+LootkeyAPI/obj/
+LootkeyAPI.Tests/bin/
+LootkeyAPI.Tests/obj/
+LootkeyAPI/LootkeyAPI.csproj.user

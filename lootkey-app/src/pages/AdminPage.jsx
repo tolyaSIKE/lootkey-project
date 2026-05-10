@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [newKey, setNewKey] = useState({
     gameId: "",
     keyName: "",
-    keyCode: ""
+    keyCode: "",
   });
 
   const [newGame, setNewGame] = useState({
@@ -36,8 +36,54 @@ export default function AdminPage() {
     genre: "",
     year: "",
     steamUrl: "",
-    epicUrl: ""
+    epicUrl: "",
   });
+
+  const loadGames = useCallback(() => {
+    fetch("https://localhost:7253/api/games")
+      .then((res) => res.json())
+      .then((data) => setGames(data))
+      .catch((err) => console.error("Games loading error:", err));
+  }, []);
+
+  const loadOrders = useCallback(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("https://localhost:7253/api/orders", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setOrders(data))
+      .catch((err) => console.error("Orders loading error:", err));
+  }, []);
+
+  const loadReviews = useCallback(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("https://localhost:7253/api/reviews/admin/all", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setReviews(data))
+      .catch((err) => console.error("Reviews loading error:", err));
+  }, []);
+
+  const loadGameKeys = useCallback(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("https://localhost:7253/api/gamekeys", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setGameKeys(data))
+      .catch((err) => console.error("Game keys loading error:", err));
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -49,82 +95,32 @@ export default function AdminPage() {
       logAction(
         "ADMIN_ACCESS_DENIED",
         "Non-admin user tried to open Admin Panel",
-        "/admin"
+        "/admin",
       );
 
       navigate("/");
       return;
     }
 
-    logAction(
-      "ADMIN_PANEL_OPENED",
-      "Admin opened Admin Panel",
-      "/admin"
-    );
+    logAction("ADMIN_PANEL_OPENED", "Admin opened Admin Panel", "/admin");
 
     loadGames();
     loadOrders();
     loadReviews();
     loadGameKeys();
-  }, [user, navigate]);
-
-  const loadGames = () => {
-    fetch("https://localhost:7253/api/games")
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .catch((err) => console.error("Games loading error:", err));
-  };
-
-  const loadOrders = () => {
-    const token = localStorage.getItem("token");
-
-    fetch("https://localhost:7253/api/orders", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => setOrders(data))
-      .catch((err) => console.error("Orders loading error:", err));
-  };
-
-  const loadReviews = () => {
-    const token = localStorage.getItem("token");
-
-    fetch("https://localhost:7253/api/reviews/admin/all", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => setReviews(data))
-      .catch((err) => console.error("Reviews loading error:", err));
-  };
-
-  const loadGameKeys = () => {
-    const token = localStorage.getItem("token");
-
-    fetch("https://localhost:7253/api/gamekeys", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => setGameKeys(data))
-      .catch((err) => console.error("Game keys loading error:", err));
-  };
+  }, [user, navigate, loadGames, loadOrders, loadReviews, loadGameKeys]);
 
   const handleChange = (e) => {
     setNewGame({
       ...newGame,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleKeyChange = (e) => {
     setNewKey({
       ...newKey,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -132,7 +128,7 @@ export default function AdminPage() {
     logAction(
       "ADMIN_GAME_EDIT_CANCELLED",
       "Admin cancelled game editing",
-      "/admin"
+      "/admin",
     );
 
     setNewGame({
@@ -146,7 +142,7 @@ export default function AdminPage() {
       genre: "",
       year: "",
       steamUrl: "",
-      epicUrl: ""
+      epicUrl: "",
     });
 
     setEditingId(null);
@@ -158,7 +154,9 @@ export default function AdminPage() {
     const gameData = {
       title: newGame.title,
       price: Number(newGame.price),
-      discountPrice: newGame.discountPrice ? Number(newGame.discountPrice) : null,
+      discountPrice: newGame.discountPrice
+        ? Number(newGame.discountPrice)
+        : null,
       imageUrl: newGame.imageUrl,
       description: newGame.description,
       minRequirements: newGame.minRequirements,
@@ -166,13 +164,13 @@ export default function AdminPage() {
       genre: newGame.genre,
       year: newGame.year ? Number(newGame.year) : null,
       steamUrl: newGame.steamUrl,
-      epicUrl: newGame.epicUrl
+      epicUrl: newGame.epicUrl,
     };
 
     logAction(
       editingId ? "ADMIN_GAME_UPDATE_ATTEMPT" : "ADMIN_GAME_CREATE_ATTEMPT",
       `${editingId ? "Updating" : "Creating"} game: ${newGame.title}`,
-      "/admin"
+      "/admin",
     );
 
     let res;
@@ -182,18 +180,18 @@ export default function AdminPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(gameData)
+        body: JSON.stringify(gameData),
       });
     } else {
       res = await fetch("https://localhost:7253/api/games", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(gameData)
+        body: JSON.stringify(gameData),
       });
     }
 
@@ -203,7 +201,7 @@ export default function AdminPage() {
       logAction(
         editingId ? "ADMIN_GAME_UPDATED" : "ADMIN_GAME_CREATED",
         `${editingId ? "Updated" : "Created"} game: ${newGame.title}`,
-        "/admin"
+        "/admin",
       );
 
       resetForm();
@@ -215,7 +213,7 @@ export default function AdminPage() {
       logAction(
         editingId ? "ADMIN_GAME_UPDATE_FAILED" : "ADMIN_GAME_CREATE_FAILED",
         `Game save failed: ${newGame.title}. Reason=${text}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -230,14 +228,14 @@ export default function AdminPage() {
     logAction(
       "ADMIN_GAME_DELETE_ATTEMPT",
       `Admin tried to delete game: ${game?.title}, gameId=${id}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch(`https://localhost:7253/api/games/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (res.ok) {
@@ -246,7 +244,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_GAME_DELETED",
         `Admin deleted game: ${game?.title}, gameId=${id}`,
-        "/admin"
+        "/admin",
       );
 
       loadGames();
@@ -256,7 +254,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_GAME_DELETE_FAILED",
         `Admin failed to delete gameId=${id}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -265,7 +263,7 @@ export default function AdminPage() {
     logAction(
       "ADMIN_GAME_EDIT_STARTED",
       `Admin started editing game: ${game.title}, gameId=${game.id}`,
-      "/admin"
+      "/admin",
     );
 
     setEditingId(game.id);
@@ -281,7 +279,7 @@ export default function AdminPage() {
       genre: game.category?.name || game.genre || "",
       year: game.year || "",
       steamUrl: game.steamUrl || "",
-      epicUrl: game.epicUrl || ""
+      epicUrl: game.epicUrl || "",
     });
   };
 
@@ -295,14 +293,14 @@ export default function AdminPage() {
     logAction(
       "ADMIN_DISCOUNT_REMOVE_ATTEMPT",
       `Admin tried to remove discount from: ${game?.title}, gameId=${id}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch(`https://localhost:7253/api/games/${id}/discount`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (res.ok) {
@@ -311,7 +309,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_DISCOUNT_REMOVED",
         `Admin removed discount from: ${game?.title}, gameId=${id}`,
-        "/admin"
+        "/admin",
       );
 
       loadGames();
@@ -319,7 +317,7 @@ export default function AdminPage() {
       if (editingId === id) {
         setNewGame({
           ...newGame,
-          discountPrice: ""
+          discountPrice: "",
         });
       }
     } else {
@@ -329,7 +327,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_DISCOUNT_REMOVE_FAILED",
         `Failed to remove discount from gameId=${id}. Reason=${text}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -342,20 +340,20 @@ export default function AdminPage() {
     logAction(
       "ADMIN_KEY_CREATE_ATTEMPT",
       `Admin tried to create key. Game=${selectedGame?.title}, KeyName=${newKey.keyName}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch("https://localhost:7253/api/gamekeys", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         gameId: Number(newKey.gameId),
         keyName: newKey.keyName,
-        keyCode: newKey.keyCode
-      })
+        keyCode: newKey.keyCode,
+      }),
     });
 
     if (res.ok) {
@@ -364,13 +362,13 @@ export default function AdminPage() {
       logAction(
         "ADMIN_KEY_CREATED",
         `Admin created key. Game=${selectedGame?.title}, KeyName=${newKey.keyName}, KeyCode=${newKey.keyCode}`,
-        "/admin"
+        "/admin",
       );
 
       setNewKey({
         gameId: "",
         keyName: "",
-        keyCode: ""
+        keyCode: "",
       });
 
       loadGameKeys();
@@ -381,7 +379,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_KEY_CREATE_FAILED",
         `Failed to create key. Reason=${text}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -396,14 +394,14 @@ export default function AdminPage() {
     logAction(
       "ADMIN_KEY_DELETE_ATTEMPT",
       `Admin tried to delete key id=${id}, keyName=${key?.keyName}, game=${key?.gameTitle}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch(`https://localhost:7253/api/gamekeys/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (res.ok) {
@@ -412,7 +410,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_KEY_DELETED",
         `Admin deleted key id=${id}, keyName=${key?.keyName}, game=${key?.gameTitle}`,
-        "/admin"
+        "/admin",
       );
 
       loadGameKeys();
@@ -423,7 +421,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_KEY_DELETE_FAILED",
         `Failed to delete key id=${id}. Reason=${text}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -438,14 +436,14 @@ export default function AdminPage() {
     logAction(
       "ADMIN_REVIEW_DELETE_ATTEMPT",
       `Admin tried to delete review id=${id}, game=${review?.gameTitle}, user=${review?.userEmail}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch(`https://localhost:7253/api/reviews/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (res.ok) {
@@ -454,7 +452,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_REVIEW_DELETED",
         `Admin deleted review id=${id}, game=${review?.gameTitle}, user=${review?.userEmail}`,
-        "/admin"
+        "/admin",
       );
 
       loadReviews();
@@ -464,7 +462,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_REVIEW_DELETE_FAILED",
         `Failed to delete review id=${id}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -475,19 +473,19 @@ export default function AdminPage() {
     logAction(
       "ADMIN_EMAIL_BROADCAST_ATTEMPT",
       `Admin tried to send email broadcast. Subject=${emailSubject}`,
-      "/admin"
+      "/admin",
     );
 
     const res = await fetch("https://localhost:7253/api/email/broadcast", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         subject: emailSubject,
-        message: emailMessage
-      })
+        message: emailMessage,
+      }),
     });
 
     if (res.ok) {
@@ -496,7 +494,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_EMAIL_BROADCAST_SENT",
         `Admin sent email broadcast. Subject=${emailSubject}`,
-        "/admin"
+        "/admin",
       );
 
       setEmailSubject("");
@@ -507,7 +505,7 @@ export default function AdminPage() {
       logAction(
         "ADMIN_EMAIL_BROADCAST_FAILED",
         `Email broadcast failed. Subject=${emailSubject}`,
-        "/admin"
+        "/admin",
       );
     }
   };
@@ -532,25 +530,100 @@ export default function AdminPage() {
             </h2>
 
             <div className="space-y-3">
-              <input name="title" value={newGame.title} onChange={handleChange} placeholder="Title" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="price" value={newGame.price} onChange={handleChange} placeholder="Price" type="number" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="discountPrice" value={newGame.discountPrice} onChange={handleChange} placeholder="Discount price" type="number" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="imageUrl" value={newGame.imageUrl} onChange={handleChange} placeholder="/games/..." className="w-full bg-gray-700 p-3 rounded" />
-              <input name="genre" value={newGame.genre} onChange={handleChange} placeholder="Genre" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="year" value={newGame.year} onChange={handleChange} placeholder="Year" type="number" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="steamUrl" value={newGame.steamUrl} onChange={handleChange} placeholder="Steam URL" className="w-full bg-gray-700 p-3 rounded" />
-              <input name="epicUrl" value={newGame.epicUrl} onChange={handleChange} placeholder="Epic URL" className="w-full bg-gray-700 p-3 rounded" />
+              <input
+                name="title"
+                value={newGame.title}
+                onChange={handleChange}
+                placeholder="Title"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="price"
+                value={newGame.price}
+                onChange={handleChange}
+                placeholder="Price"
+                type="number"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="discountPrice"
+                value={newGame.discountPrice}
+                onChange={handleChange}
+                placeholder="Discount price"
+                type="number"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="imageUrl"
+                value={newGame.imageUrl}
+                onChange={handleChange}
+                placeholder="/games/..."
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="genre"
+                value={newGame.genre}
+                onChange={handleChange}
+                placeholder="Genre"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="year"
+                value={newGame.year}
+                onChange={handleChange}
+                placeholder="Year"
+                type="number"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="steamUrl"
+                value={newGame.steamUrl}
+                onChange={handleChange}
+                placeholder="Steam URL"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
+              <input
+                name="epicUrl"
+                value={newGame.epicUrl}
+                onChange={handleChange}
+                placeholder="Epic URL"
+                className="w-full bg-gray-700 p-3 rounded"
+              />
 
-              <textarea name="description" value={newGame.description} onChange={handleChange} placeholder="Description" className="w-full bg-gray-700 p-3 rounded min-h-[100px]" />
-              <textarea name="minRequirements" value={newGame.minRequirements} onChange={handleChange} placeholder="Min requirements" className="w-full bg-gray-700 p-3 rounded min-h-[100px]" />
-              <textarea name="recRequirements" value={newGame.recRequirements} onChange={handleChange} placeholder="Rec requirements" className="w-full bg-gray-700 p-3 rounded min-h-[100px]" />
+              <textarea
+                name="description"
+                value={newGame.description}
+                onChange={handleChange}
+                placeholder="Description"
+                className="w-full bg-gray-700 p-3 rounded min-h-[100px]"
+              />
+              <textarea
+                name="minRequirements"
+                value={newGame.minRequirements}
+                onChange={handleChange}
+                placeholder="Min requirements"
+                className="w-full bg-gray-700 p-3 rounded min-h-[100px]"
+              />
+              <textarea
+                name="recRequirements"
+                value={newGame.recRequirements}
+                onChange={handleChange}
+                placeholder="Rec requirements"
+                className="w-full bg-gray-700 p-3 rounded min-h-[100px]"
+              />
 
-              <button onClick={saveGame} className="w-full bg-green-500 hover:bg-green-600 p-3 rounded font-semibold">
+              <button
+                onClick={saveGame}
+                className="w-full bg-green-500 hover:bg-green-600 p-3 rounded font-semibold"
+              >
                 {editingId ? "Update Game" : "Add Game"}
               </button>
 
               {editingId && (
-                <button onClick={resetForm} className="w-full bg-gray-600 hover:bg-gray-500 p-2 rounded">
+                <button
+                  onClick={resetForm}
+                  className="w-full bg-gray-600 hover:bg-gray-500 p-2 rounded"
+                >
                   Cancel Editing
                 </button>
               )}
@@ -562,9 +635,16 @@ export default function AdminPage() {
 
             <div className="space-y-3 max-h-[800px] overflow-y-auto">
               {games.map((game) => (
-                <div key={game.id} className="bg-gray-700 p-3 rounded-xl flex items-center justify-between gap-4">
+                <div
+                  key={game.id}
+                  className="bg-gray-700 p-3 rounded-xl flex items-center justify-between gap-4"
+                >
                   <div className="flex items-center gap-3">
-                    <img src={`/lootkey-app${game.imageUrl}`} alt={game.title} className="w-24 h-14 object-cover rounded" />
+                    <img
+                      src={`/lootkey-app${game.imageUrl}`}
+                      alt={game.title}
+                      className="w-24 h-14 object-cover rounded"
+                    />
 
                     <div>
                       <h3 className="font-semibold">{game.title}</h3>
@@ -572,8 +652,12 @@ export default function AdminPage() {
                       <p className="text-gray-300 text-sm">
                         {game.discountPrice ? (
                           <>
-                            <span className="line-through text-gray-400">€{Number(game.price).toFixed(2)}</span>{" "}
-                            <span className="text-red-500 font-bold">€{Number(game.discountPrice).toFixed(2)}</span>
+                            <span className="line-through text-gray-400">
+                              €{Number(game.price).toFixed(2)}
+                            </span>{" "}
+                            <span className="text-red-500 font-bold">
+                              €{Number(game.discountPrice).toFixed(2)}
+                            </span>
                           </>
                         ) : (
                           <>€{Number(game.price).toFixed(2)}</>
@@ -587,17 +671,26 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button onClick={() => editGame(game)} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">
+                    <button
+                      onClick={() => editGame(game)}
+                      className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+                    >
                       Edit
                     </button>
 
                     {game.discountPrice && (
-                      <button onClick={() => removeDiscount(game.id)} className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">
+                      <button
+                        onClick={() => removeDiscount(game.id)}
+                        className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded"
+                      >
                         Remove Sale
                       </button>
                     )}
 
-                    <button onClick={() => deleteGame(game.id)} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">
+                    <button
+                      onClick={() => deleteGame(game.id)}
+                      className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+                    >
                       Delete
                     </button>
                   </div>
@@ -610,19 +703,41 @@ export default function AdminPage() {
             <h2 className="text-2xl mb-4">Game Keys Management</h2>
 
             <div className="grid md:grid-cols-3 gap-3 mb-5">
-              <select name="gameId" value={newKey.gameId} onChange={handleKeyChange} className="bg-gray-700 p-3 rounded">
+              <select
+                name="gameId"
+                value={newKey.gameId}
+                onChange={handleKeyChange}
+                className="bg-gray-700 p-3 rounded"
+              >
                 <option value="">Select game</option>
                 {games.map((game) => (
-                  <option key={game.id} value={game.id}>{game.title}</option>
+                  <option key={game.id} value={game.id}>
+                    {game.title}
+                  </option>
                 ))}
               </select>
 
-              <input name="keyName" value={newKey.keyName} onChange={handleKeyChange} placeholder="Key name" className="bg-gray-700 p-3 rounded" />
+              <input
+                name="keyName"
+                value={newKey.keyName}
+                onChange={handleKeyChange}
+                placeholder="Key name"
+                className="bg-gray-700 p-3 rounded"
+              />
 
-              <input name="keyCode" value={newKey.keyCode} onChange={handleKeyChange} placeholder="Key code" className="bg-gray-700 p-3 rounded" />
+              <input
+                name="keyCode"
+                value={newKey.keyCode}
+                onChange={handleKeyChange}
+                placeholder="Key code"
+                className="bg-gray-700 p-3 rounded"
+              />
             </div>
 
-            <button onClick={createGameKey} className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded mb-5">
+            <button
+              onClick={createGameKey}
+              className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded mb-5"
+            >
               Add Game Key
             </button>
 
@@ -631,20 +746,34 @@ export default function AdminPage() {
             ) : (
               <div className="space-y-3 max-h-[500px] overflow-y-auto">
                 {gameKeys.map((key) => (
-                  <div key={key.id} className="bg-gray-700 p-3 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div
+                    key={key.id}
+                    className="bg-gray-700 p-3 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3"
+                  >
                     <div>
                       <h3 className="font-semibold">{key.gameTitle}</h3>
-                      <p className="text-gray-300 text-sm">Name: {key.keyName}</p>
-                      <p className="font-mono text-green-400 text-sm">{key.keyCode}</p>
+                      <p className="text-gray-300 text-sm">
+                        Name: {key.keyName}
+                      </p>
+                      <p className="font-mono text-green-400 text-sm">
+                        {key.keyCode}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded text-sm ${key.isSold ? "bg-red-700" : "bg-green-700"}`}>
+                      <span
+                        className={`px-3 py-1 rounded text-sm ${
+                          key.isSold ? "bg-red-700" : "bg-green-700"
+                        }`}
+                      >
                         {key.isSold ? "Sold" : "Available"}
                       </span>
 
                       {!key.isSold && (
-                        <button onClick={() => deleteGameKey(key.id)} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">
+                        <button
+                          onClick={() => deleteGameKey(key.id)}
+                          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+                        >
                           Delete
                         </button>
                       )}
@@ -658,11 +787,24 @@ export default function AdminPage() {
           <div className="bg-gray-800 p-6 rounded-xl lg:col-span-2">
             <h2 className="text-2xl mb-4">Email Notifications</h2>
 
-            <input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} placeholder="Email subject" className="w-full bg-gray-700 p-3 rounded mb-3" />
+            <input
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+              placeholder="Email subject"
+              className="w-full bg-gray-700 p-3 rounded mb-3"
+            />
 
-            <textarea value={emailMessage} onChange={(e) => setEmailMessage(e.target.value)} placeholder="Email message for users" className="w-full bg-gray-700 p-3 rounded min-h-[120px] mb-3" />
+            <textarea
+              value={emailMessage}
+              onChange={(e) => setEmailMessage(e.target.value)}
+              placeholder="Email message for users"
+              className="w-full bg-gray-700 p-3 rounded min-h-[120px] mb-3"
+            />
 
-            <button onClick={sendBroadcastEmail} className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded">
+            <button
+              onClick={sendBroadcastEmail}
+              className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded"
+            >
               Send Email Broadcast
             </button>
           </div>
@@ -679,8 +821,12 @@ export default function AdminPage() {
                     <div className="flex flex-col md:flex-row justify-between gap-3 mb-3">
                       <div>
                         <h3 className="font-semibold">Order #{order.id}</h3>
-                        <p className="text-gray-300 text-sm">User: {order.userEmail}</p>
-                        <p className="text-gray-300 text-sm">Date: {new Date(order.createdAt).toLocaleString()}</p>
+                        <p className="text-gray-300 text-sm">
+                          User: {order.userEmail}
+                        </p>
+                        <p className="text-gray-300 text-sm">
+                          Date: {new Date(order.createdAt).toLocaleString()}
+                        </p>
                       </div>
 
                       <div className="text-green-400 font-bold text-xl">
@@ -690,9 +836,14 @@ export default function AdminPage() {
 
                     <div className="space-y-2">
                       {order.items.map((item, index) => (
-                        <div key={`${order.id}-${index}`} className="bg-gray-800 p-3 rounded flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div
+                          key={`${order.id}-${index}`}
+                          className="bg-gray-800 p-3 rounded flex flex-col md:flex-row md:items-center justify-between gap-2"
+                        >
                           <span>{item.gameTitle}</span>
-                          <span className="font-mono text-green-400">{item.keyCode}</span>
+                          <span className="font-mono text-green-400">
+                            {item.keyCode}
+                          </span>
                           <span>€{Number(item.price).toFixed(2)}</span>
                         </div>
                       ))}
@@ -714,7 +865,9 @@ export default function AdminPage() {
                   <div key={review.id} className="bg-gray-700 p-4 rounded-xl">
                     <div className="flex flex-col md:flex-row justify-between gap-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{review.gameTitle}</h3>
+                        <h3 className="font-semibold text-lg">
+                          {review.gameTitle}
+                        </h3>
                         <p className="text-gray-300 text-sm">
                           User: {review.username} ({review.userEmail})
                         </p>
@@ -726,7 +879,10 @@ export default function AdminPage() {
                         </p>
                       </div>
 
-                      <button onClick={() => deleteReview(review.id)} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded h-fit">
+                      <button
+                        onClick={() => deleteReview(review.id)}
+                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded h-fit"
+                      >
                         Delete Review
                       </button>
                     </div>

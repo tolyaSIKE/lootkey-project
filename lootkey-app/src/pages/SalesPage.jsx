@@ -13,7 +13,7 @@ export default function SalesPage() {
           (game) =>
             game.discountPrice !== null &&
             game.discountPrice !== undefined &&
-            Number(game.discountPrice) > 0
+            Number(game.discountPrice) > 0,
         );
 
         setGames(salesGames);

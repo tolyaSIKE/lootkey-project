@@ -6,9 +6,7 @@ export default function Footer() {
       </div>
 
       <div className="relative flex items-center justify-center px-6">
-        <p className="text-gray-400 text-sm">
-          LootKey Team © 2026
-        </p>
+        <p className="text-gray-400 text-sm">LootKey Team © 2026</p>
 
         <div className="absolute right-6 flex items-center gap-4">
           <a

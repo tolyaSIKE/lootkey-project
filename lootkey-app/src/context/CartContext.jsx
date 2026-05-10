@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { logAction } from "../services/logger";
 
-const CartContext = createContext();
+const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
@@ -10,6 +12,8 @@ export function CartProvider({ children }) {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [purchasedItems, setPurchasedItems] = useState([]);
+  const [checkoutMessage, setCheckoutMessage] = useState("");
 
   useEffect(() => {
     localStorage.setItem("lootkey_cart", JSON.stringify(cartItems));
@@ -23,32 +27,28 @@ export function CartProvider({ children }) {
       if (existing) {
         logAction(
           "CART_ITEM_QUANTITY_INCREASED",
-          `Increased quantity in cart: ${game.title}, gameId=${game.id}`
+          "/cart",
+          `Increased quantity in cart: ${game.title}, gameId=${game.id}`,
         );
 
         return prev.map((item) =>
-          item.id === game.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === game.id ? { ...item, quantity: item.quantity + 1 } : item,
         );
       }
 
       logAction(
         "CART_ITEM_ADDED",
-        `Added to cart: ${game.title}, gameId=${game.id}, price=${finalPrice}`
+        "/cart",
+        `Added to cart: ${game.title}, gameId=${game.id}, price=${finalPrice}`,
       );
 
       return [
         ...prev,
         {
-          id: game.id,
-          title: game.title,
-          price: Number(finalPrice),
-          originalPrice: Number(game.price),
-          discountPrice: game.discountPrice,
-          imageUrl: game.imageUrl,
-          quantity: 1
-        }
+          ...game,
+          price: finalPrice,
+          quantity: 1,
+        },
       ];
     });
 
@@ -57,37 +57,19 @@ export function CartProvider({ children }) {
 
   const increaseQuantity = (id) => {
     setCartItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          logAction(
-            "CART_ITEM_QUANTITY_INCREASED",
-            `Increased quantity: ${item.title}, gameId=${item.id}`
-          );
-
-          return { ...item, quantity: item.quantity + 1 };
-        }
-
-        return item;
-      })
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
+      ),
     );
   };
 
   const decreaseQuantity = (id) => {
     setCartItems((prev) =>
-      prev
-        .map((item) => {
-          if (item.id === id) {
-            logAction(
-              "CART_ITEM_QUANTITY_DECREASED",
-              `Decreased quantity: ${item.title}, gameId=${item.id}`
-            );
-
-            return { ...item, quantity: item.quantity - 1 };
-          }
-
-          return item;
-        })
-        .filter((item) => item.quantity > 0)
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
+          : item,
+      ),
     );
   };
 
@@ -98,7 +80,8 @@ export function CartProvider({ children }) {
       if (removed) {
         logAction(
           "CART_ITEM_REMOVED",
-          `Removed from cart: ${removed.title}, gameId=${removed.id}`
+          "/cart",
+          `Removed from cart: ${removed.title}, gameId=${removed.id}`,
         );
       }
 
@@ -110,22 +93,77 @@ export function CartProvider({ children }) {
     if (cartItems.length > 0) {
       logAction(
         "CART_CLEARED",
-        `Cart cleared. Items count: ${cartItems.length}`
+        "/cart",
+        `Cart cleared. Items count: ${cartItems.length}`,
       );
     }
 
     setCartItems([]);
   };
 
+  const checkout = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setCheckoutMessage("You need to login before checkout.");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setCheckoutMessage("Cart is empty.");
+      return;
+    }
+
+    const dto = {
+      items: cartItems.map((item) => ({
+        gameId: item.id,
+        quantity: item.quantity,
+      })),
+    };
+
+    try {
+      const res = await fetch("https://localhost:7253/api/orders/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(dto),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCheckoutMessage(data.message || "Checkout error.");
+        return;
+      }
+
+      setPurchasedItems(data.items || []);
+      setCheckoutMessage(data.message || "Payment successful.");
+      clearCart();
+
+      logAction(
+        "CHECKOUT_SUCCESS",
+        "/cart",
+        `Checkout completed. OrderId=${data.orderId}, total=${data.totalPrice}`,
+      );
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setCheckoutMessage("Checkout request failed.");
+    }
+  };
+
+  const resetCheckoutInfo = () => {
+    setPurchasedItems([]);
+    setCheckoutMessage("");
+  };
+
   const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0,
   );
 
-  const totalCount = cartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -133,13 +171,17 @@ export function CartProvider({ children }) {
         cartItems,
         isCartOpen,
         setIsCartOpen,
+        purchasedItems,
+        checkoutMessage,
         addToCart,
         increaseQuantity,
         decreaseQuantity,
         removeFromCart,
         clearCart,
+        checkout,
+        resetCheckoutInfo,
         totalPrice,
-        totalCount
+        totalCount,
       }}
     >
       {children}

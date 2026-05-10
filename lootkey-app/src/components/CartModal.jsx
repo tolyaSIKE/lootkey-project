@@ -16,7 +16,7 @@ export default function CartModal() {
     decreaseQuantity,
     removeFromCart,
     clearCart,
-    totalPrice
+    totalPrice,
   } = useCart();
 
   const [purchasedItems, setPurchasedItems] = useState([]);
@@ -38,7 +38,10 @@ export default function CartModal() {
   };
 
   const continueShopping = () => {
-    logAction("CONTINUE_SHOPPING_CLICKED", "User clicked Continue shopping after purchase/cart view");
+    logAction(
+      "CONTINUE_SHOPPING_CLICKED",
+      "User clicked Continue shopping after purchase/cart view",
+    );
     resetCheckoutInfo();
     clearCart();
     setIsCartOpen(false);
@@ -52,7 +55,10 @@ export default function CartModal() {
     const token = localStorage.getItem("token");
 
     if (!user || !token) {
-      logAction("CHECKOUT_ATTEMPT_WITHOUT_LOGIN", "Anonymous user tried to checkout");
+      logAction(
+        "CHECKOUT_ATTEMPT_WITHOUT_LOGIN",
+        "Anonymous user tried to checkout",
+      );
       setIsCartOpen(false);
       navigate("/login");
       return;
@@ -61,22 +67,22 @@ export default function CartModal() {
     const request = {
       items: cartItems.map((item) => ({
         gameId: item.id,
-        quantity: item.quantity
-      }))
+        quantity: item.quantity,
+      })),
     };
 
     logAction(
       "CHECKOUT_STARTED",
-      `User started checkout. Items: ${cartItems.map((i) => `${i.title} x${i.quantity}`).join(", ")}. Total: €${totalPrice.toFixed(2)}`
+      `User started checkout. Items: ${cartItems.map((i) => `${i.title} x${i.quantity}`).join(", ")}. Total: €${totalPrice.toFixed(2)}`,
     );
 
     const res = await fetch("https://localhost:7253/api/orders/checkout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(request)
+      body: JSON.stringify(request),
     });
 
     if (!res.ok) {
@@ -85,7 +91,7 @@ export default function CartModal() {
 
       logAction(
         "CHECKOUT_FAILED",
-        text || "Checkout failed with unknown error"
+        text || "Checkout failed with unknown error",
       );
 
       return;
@@ -98,7 +104,7 @@ export default function CartModal() {
 
     logAction(
       "CHECKOUT_COMPLETED",
-      `Order completed. OrderId=${data.orderId}, Total=€${Number(data.totalPrice).toFixed(2)}, Items=${(data.items || []).map((i) => `${i.title}: ${i.keyCode}`).join(", ")}`
+      `Order completed. OrderId=${data.orderId}, Total=€${Number(data.totalPrice).toFixed(2)}, Items=${(data.items || []).map((i) => `${i.title}: ${i.keyCode}`).join(", ")}`,
     );
 
     clearCart();
@@ -110,7 +116,10 @@ export default function CartModal() {
         <div className="flex justify-between items-center px-6 py-4 border-b">
           <h2 className="text-2xl font-bold">Cart</h2>
 
-          <button onClick={closeCart} className="text-3xl text-gray-600 hover:text-black">
+          <button
+            onClick={closeCart}
+            className="text-3xl text-gray-600 hover:text-black"
+          >
             ×
           </button>
         </div>
@@ -126,9 +135,16 @@ export default function CartModal() {
 
               <div className="space-y-3">
                 {purchasedItems.map((item, index) => (
-                  <div key={`${item.gameId}-${index}`} className="border rounded-xl p-3 flex items-center justify-between gap-4">
+                  <div
+                    key={`${item.gameId}-${index}`}
+                    className="border rounded-xl p-3 flex items-center justify-between gap-4"
+                  >
                     <div className="flex items-center gap-3">
-                      <img src={`/lootkey-app${item.imageUrl}`} alt={item.title} className="w-24 h-14 object-cover rounded" />
+                      <img
+                        src={`/lootkey-app${item.imageUrl}`}
+                        alt={item.title}
+                        className="w-24 h-14 object-cover rounded"
+                      />
 
                       <div>
                         <h4 className="font-semibold">{item.title}</h4>
@@ -161,9 +177,16 @@ export default function CartModal() {
             cartItems.length > 0 && (
               <div className="space-y-5">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="border rounded-xl p-4 flex items-center justify-between gap-4">
+                  <div
+                    key={item.id}
+                    className="border rounded-xl p-4 flex items-center justify-between gap-4"
+                  >
                     <div className="flex items-center gap-4">
-                      <img src={`/lootkey-app${item.imageUrl}`} alt={item.title} className="w-24 h-16 object-cover rounded" />
+                      <img
+                        src={`/lootkey-app${item.imageUrl}`}
+                        alt={item.title}
+                        className="w-24 h-16 object-cover rounded"
+                      />
 
                       <div>
                         <h3 className="font-semibold text-lg">{item.title}</h3>
@@ -172,13 +195,21 @@ export default function CartModal() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button onClick={() => decreaseQuantity(item.id)} className="text-2xl px-3 text-gray-500 hover:text-black">
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        className="text-2xl px-3 text-gray-500 hover:text-black"
+                      >
                         −
                       </button>
 
-                      <div className="border px-4 py-2 rounded">{item.quantity}</div>
+                      <div className="border px-4 py-2 rounded">
+                        {item.quantity}
+                      </div>
 
-                      <button onClick={() => increaseQuantity(item.id)} className="text-2xl px-3 text-blue-600 hover:text-blue-800">
+                      <button
+                        onClick={() => increaseQuantity(item.id)}
+                        className="text-2xl px-3 text-blue-600 hover:text-blue-800"
+                      >
                         +
                       </button>
                     </div>
@@ -188,7 +219,10 @@ export default function CartModal() {
                         €{(item.price * item.quantity).toFixed(2)}
                       </p>
 
-                      <button onClick={() => removeFromCart(item.id)} className="text-sm text-red-500 hover:underline">
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-sm text-red-500 hover:underline"
+                      >
                         Remove
                       </button>
                     </div>
@@ -201,14 +235,20 @@ export default function CartModal() {
 
         {cartItems.length > 0 && (
           <div className="p-6 border-t flex flex-col md:flex-row justify-between items-center gap-4">
-            <button onClick={closeCart} className="bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-lg text-blue-600">
+            <button
+              onClick={closeCart}
+              className="bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-lg text-blue-600"
+            >
               Continue shopping
             </button>
 
             <div className="flex items-center gap-5 bg-green-50 border border-green-500 rounded-lg px-6 py-4">
               <p className="text-3xl font-semibold">€{totalPrice.toFixed(2)}</p>
 
-              <button onClick={checkout} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
+              <button
+                onClick={checkout}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold"
+              >
                 Checkout
               </button>
             </div>
@@ -217,13 +257,19 @@ export default function CartModal() {
 
         {purchasedItems.length > 0 && cartItems.length === 0 && (
           <div className="p-6 border-t flex justify-between items-center">
-            <button onClick={continueShopping} className="bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-lg text-blue-600">
+            <button
+              onClick={continueShopping}
+              className="bg-gray-100 hover:bg-gray-200 px-6 py-3 rounded-lg text-blue-600"
+            >
               Continue shopping
             </button>
 
             <button
               onClick={() => {
-                logAction("PROFILE_OPENED_AFTER_PURCHASE", "User opened profile page after purchase");
+                logAction(
+                  "PROFILE_OPENED_AFTER_PURCHASE",
+                  "User opened profile page after purchase",
+                );
                 resetCheckoutInfo();
                 setIsCartOpen(false);
                 navigate("/profile");

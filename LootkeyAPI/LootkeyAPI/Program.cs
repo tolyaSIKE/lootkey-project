@@ -6,7 +6,6 @@ using System.Text;
 using LootkeyAPI.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using LootkeyAPI.Services;
 
 namespace LootkeyAPI
 {
