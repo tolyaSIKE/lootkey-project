@@ -1,0 +1,23 @@
+# Visual Studio / ASP.NET Core
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.rsuser
+
+# React / Vite
+node_modules/
+dist/
+
+# Logs
+Logs/
+*.log
+
+# Secrets
+appsettings.Development.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db
